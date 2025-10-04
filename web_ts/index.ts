@@ -1,5 +1,5 @@
 const layout = [
-  ["goldie", "workload"],
+  ["goldie"],
   ["anki", "bbdc"],
   ["tagspaces", "zhihu"],
   ["bilibili", "xiaohongshu", "douyin"],
@@ -35,7 +35,6 @@ const nameMode: Record<
   [string, string, { r: number; g: number; b: number }]
 > = {
   goldie: ["点数", "cd", rgb(172, 228, 68)],
-  workload: ["时间", "小时", rgb(255, 75, 183)],
   anki: ["Anki", "卡片", rgb(81, 171, 231)],
   bbdc: ["不背单词-复习", "单词", rgb(255, 104, 0)],
   tagspaces: ["未标记文件", "文件", rgb(29, 209, 159)],
