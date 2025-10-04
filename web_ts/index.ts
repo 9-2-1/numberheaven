@@ -35,8 +35,8 @@ const nameMode: Record<
   [string, string, { r: number; g: number; b: number }]
 > = {
   goldie: ["点数", "cd", rgb(172, 228, 68)],
-  anki: ["Anki", "卡片", rgb(81, 171, 231)],
-  bbdc: ["不背单词-复习", "单词", rgb(255, 104, 0)],
+  anki: ["Anki待复习", "卡片", rgb(81, 171, 231)],
+  bbdc: ["不背单词待复习", "单词", rgb(255, 104, 0)],
   tagspaces: ["未标记文件", "文件", rgb(29, 209, 159)],
   zhihu: ["知乎稍后再看", "回答", rgb(23, 114, 246)],
   bilibili: ["b站稍后再看", "视频", rgb(0, 174, 236)],
