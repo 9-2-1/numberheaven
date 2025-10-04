@@ -1,7 +1,11 @@
 from aiohttp import web
 from datetime import datetime
+import traceback
 import sqlite3
 import json
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 database: sqlite3.Connection
 
@@ -10,14 +14,15 @@ async def post_update(req: web.Request) -> web.Response:
     if req.headers["APPID"] not in {"ArigiBBDC1207", "Arigi70005996"}:
         return web.Response(text="Error: Wrong APPID", status=400)
     try:
-        name = req.get("name")
+        name = req.query["name"]
         time = datetime.now().timestamp()
         value = float((await req.content.read()).decode("utf-8"))
-        database.execute("insert into history (?, ?, ?)", (name, time, value))
-        database.execute("insert or replace into numbers (?, ?)", (name, value))
+        database.execute("insert into history values (?, ?, ?)", (name, time, value))
+        database.execute("insert or replace into numbers values (?, ?)", (name, value))
         database.commit()
         return web.Response(text="Updated", status=200)
     except Exception as e:
+        traceback.print_exc()
         return web.Response(text=f"Error: {e}", status=500)
 
 
