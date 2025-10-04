@@ -13,7 +13,7 @@ async def post_update(req: web.Request) -> web.Response:
         name = req.get("name")
         time = datetime.now().timestamp()
         value = float((await req.content.read()).decode("utf-8"))
-        database.execute("insert into history (?, ?, ?)", (name, value, time))
+        database.execute("insert into history (?, ?, ?)", (name, time, value))
         database.execute("insert or replace into numbers (?, ?)", (name, value))
         database.commit()
         return web.Response(text="Updated", status=200)

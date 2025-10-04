@@ -99,7 +99,7 @@ h1 {
 .number_history_min {
   position: absolute;
   font-size: 1rem;
-  color: var(--label-color);    
+  color: var(--label-color);
 }
 
 .number_history_min {

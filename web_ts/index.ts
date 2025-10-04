@@ -23,7 +23,7 @@ function oklchtorgbstr({ l, c, h }: { l: number; c: number; h: number }) {
       return rgbtostr(rgb);
     }
   }
-  return "rgb(255, 0, 255)"
+  return "rgb(255, 0, 255)";
 }
 
 function rgbtostr(rgb: { r: number; g: number; b: number }) {
@@ -49,7 +49,7 @@ window.addEventListener("load", async () => {
     [name: string]: {
       value: number;
       history: {
-        time: string;
+        time: number;
         value: number;
       }[];
     };
@@ -76,17 +76,80 @@ window.addEventListener("load", async () => {
       //     <div class="number_history_last">5/1 12:34</div>
       //   </div>
       // </div>
-      const theme = nameMode[name]?.[2];
-      const {l:tl, c:tc, h:th} = convertRgbToOklch(theme);
 
-      const titleColor = oklchtorgbstr({l: 0.4, c: tc, h: th});
-      const numColor = oklchtorgbstr({l: 0.5, c: tc, h: th});
-      const unitColor = oklchtorgbstr({l: 0.6, c: tc, h: th});
-      const labelColor = oklchtorgbstr({l: 0.7, c: tc, h: th});
-      const underColor = oklchtorgbstr({l: 0.8, c: tc, h: th});
-      const graphColor = oklchtorgbstr({l: 0.9, c: tc, h: th});
-      const bgColor = oklchtorgbstr({l: 0.95, c: tc, h: th});
-        
+      let strokePath = "";
+      let graphMax = numbers[name]?.value ?? 0;
+      let graphMin = graphMax;
+      let lasttime = "";
+
+      let historyList = Array.from(numbers[name]?.history ?? []); // 复制数组
+
+      if (historyList.length > 0) {
+        let now = new Date().getTime() / 1000;
+        let back = 7 * 24 * 60 * 60; // 7天
+
+        lasttime = new Date(
+          historyList[historyList.length - 1].time * 1000,
+        ).toLocaleString();
+
+        historyList.push({
+          time: now,
+          value: numbers[name].value,
+        });
+
+        let backleft: { time: number; value: number } | null = null;
+        while (historyList.length > 0 && historyList[0].time < now - back) {
+          backleft = historyList.shift()!;
+        }
+
+        if (backleft) {
+          const historyleft = historyList[0]!;
+          historyList.unshift({
+            time: now - back,
+            value:
+              backleft.value +
+              ((historyleft.value - backleft.value) *
+                (now - back - backleft.time)) /
+                (historyleft.time - backleft.time),
+          });
+        } else {
+          const historyleft = historyList[0]!;
+          historyList.unshift({
+            time: now - back,
+            value: historyleft.value,
+          });
+        }
+
+        for (const history of historyList) {
+          graphMax = Math.max(graphMax, history.value);
+          graphMin = Math.min(graphMin, history.value);
+        }
+
+        if (graphMax - graphMin < 40) {
+          const graphMid = (graphMax + graphMin) / 2;
+          graphMax = graphMid + 20;
+          graphMin = graphMid - 20;
+        }
+
+        for (const history of historyList) {
+          const x = ((history.time - now + back) / back) * 100;
+          const y =
+            100 - ((history.value - graphMin) / (graphMax - graphMin)) * 100;
+          strokePath += `L${x} ${y}`;
+        }
+      }
+
+      const theme = nameMode[name]?.[2];
+      const { l: tl, c: tc, h: th } = convertRgbToOklch(theme);
+
+      const titleColor = oklchtorgbstr({ l: 0.4, c: tc, h: th });
+      const numColor = oklchtorgbstr({ l: 0.5, c: tc, h: th });
+      const unitColor = oklchtorgbstr({ l: 0.6, c: tc, h: th });
+      const labelColor = oklchtorgbstr({ l: 0.7, c: tc, h: th });
+      const underColor = oklchtorgbstr({ l: 0.9, c: tc, h: th });
+      const graphColor = oklchtorgbstr({ l: 0.9, c: tc, h: th });
+      const bgColor = oklchtorgbstr({ l: 0.95, c: tc, h: th });
+
       const cardDiv = document.createElement("div");
       cardDiv.classList.add("number_card");
       cardDiv.style.setProperty("--title-color", titleColor);
@@ -104,8 +167,7 @@ window.addEventListener("load", async () => {
 
       const backgroundDiv = document.createElement("div");
       backgroundDiv.classList.add("number_card_background");
-      backgroundDiv.innerHTML =
-        `<svg class="number_card_background_svg" preserveAspectRatio="none" viewBox="0 0 100 100"><path d="M0 100 L100 0 L100 100 Z" fill="${graphColor}"/></svg>`;
+      backgroundDiv.innerHTML = `<svg class="number_card_background_svg" preserveAspectRatio="none" viewBox="0 0 100 100"><path d="M0 100 ${strokePath} L100 100 Z" fill="${graphColor}"/></svg>`;
       backgroundDivList.push({ name, element: backgroundDiv });
       upperDiv.appendChild(backgroundDiv);
 
@@ -130,14 +192,12 @@ window.addEventListener("load", async () => {
 
       const historyMaxDiv = document.createElement("div");
       historyMaxDiv.classList.add("number_history_max");
-      historyMaxDiv.textContent =
-        numbers[name]?.history?.[0]?.value?.toString() ?? "???";
+      historyMaxDiv.textContent = graphMax.toString();
       upperDiv.appendChild(historyMaxDiv);
 
       const historyMinDiv = document.createElement("div");
       historyMinDiv.classList.add("number_history_min");
-      historyMinDiv.textContent =
-        numbers[name]?.history?.[0]?.value?.toString() ?? "???";
+      historyMinDiv.textContent = graphMin.toString();
       upperDiv.appendChild(historyMinDiv);
 
       const lowerDiv = document.createElement("div");
@@ -146,13 +206,12 @@ window.addEventListener("load", async () => {
 
       const historyLengthDiv = document.createElement("div");
       historyLengthDiv.classList.add("number_history_length");
-      historyLengthDiv.textContent =
-        numbers[name]?.history?.length?.toString() ?? "???";
+      historyLengthDiv.textContent = "7天";
       lowerDiv.appendChild(historyLengthDiv);
 
       const historyLastDiv = document.createElement("div");
       historyLastDiv.classList.add("number_history_last");
-      historyLastDiv.textContent = numbers[name]?.history?.[0]?.time ?? "???";
+      historyLastDiv.textContent = lasttime;
       lowerDiv.appendChild(historyLastDiv);
     }
     numbersDiv.appendChild(numberLine);
