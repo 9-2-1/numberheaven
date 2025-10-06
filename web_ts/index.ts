@@ -176,8 +176,8 @@ window.addEventListener("load", async () => {
       backgroundDiv.classList.add("number_card_background");
       backgroundDiv.innerHTML = [
         '<svg class="number_card_background_svg" preserveAspectRatio="none" viewBox="0 0 100 100">',
-        `<path d="M0 100 ${strokePath} L100 100 Z" fill="${graphColor}"/>`,
-        `<path d="M-100 50 ${strokePath}" stroke="${lineColor}" stroke-width="2" fill="none"/>`,
+        `<path d="M0 101 ${strokePath} L100 101 Z" fill="${lineColor}" transform="translate(0, -1)"/>`,
+        `<path d="M0 101 ${strokePath} L100 101 Z" fill="${graphColor}" transform="translate(0, 1)"/>`,
         "</svg>",
       ].join("\n");
       backgroundDivList.push({ name, element: backgroundDiv });
