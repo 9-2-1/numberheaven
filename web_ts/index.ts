@@ -1,7 +1,7 @@
 const layout = [
   ["goldie"],
   ["anki", "bbdc"],
-  ["tagspaces", "zhihu"],
+  ["tagspaces", "tagspaces_todo", "zhihu"],
   ["bilibili", "xiaohongshu", "douyin"],
 ];
 
@@ -32,16 +32,17 @@ function rgbtostr(rgb: { r: number; g: number; b: number }) {
 
 const nameMode: Record<
   string,
-  [string, string, { r: number; g: number; b: number }]
+  [string, string, { r: number; g: number; b: number }, number | null, number]
 > = {
-  goldie: ["点数", "cd", rgb(172, 228, 68)],
-  anki: ["Anki待复习", "卡片", rgb(81, 171, 231)],
-  bbdc: ["不背单词待复习", "单词", rgb(255, 104, 0)],
-  tagspaces: ["未标记文件", "文件", rgb(29, 209, 159)],
-  zhihu: ["知乎稍后再看", "回答", rgb(23, 114, 246)],
-  bilibili: ["b站稍后再看", "视频", rgb(0, 174, 236)],
-  xiaohongshu: ["小红书稍后再看", "笔记", rgb(255, 36, 66)],
-  douyin: ["抖音稍后再看", "视频", rgb(22, 24, 35)],
+  goldie: ["点数", "cd", rgb(172, 228, 68), null, 50],
+  anki: ["Anki待复习", "卡片", rgb(81, 171, 231), 0, 20],
+  bbdc: ["不背单词待复习", "单词", rgb(255, 104, 0), 0, 20],
+  tagspaces: ["未标记文件", "文件", rgb(29, 209, 159), 0, 20],
+  tagspaces_todo: ["待处理文件", "文件", rgb(250, 101, 235), 0, 20],
+  zhihu: ["知乎稍后再看", "回答", rgb(23, 114, 246), 0, 20],
+  bilibili: ["b站稍后再看", "视频", rgb(0, 174, 236), 0, 20],
+  xiaohongshu: ["小红书稍后再看", "笔记", rgb(255, 36, 66), 0, 20],
+  douyin: ["抖音稍后再看", "视频", rgb(22, 24, 35), 0, 20],
 };
 
 window.addEventListener("load", async () => {
@@ -125,10 +126,16 @@ window.addEventListener("load", async () => {
           graphMin = Math.min(graphMin, history.value);
         }
 
-        if (graphMax - graphMin < 40) {
+        if (graphMax - graphMin < nameMode[name]?.[4]!) {
           const graphMid = (graphMax + graphMin) / 2;
-          graphMax = graphMid + 20;
-          graphMin = graphMid - 20;
+          graphMax = Math.ceil(graphMid + nameMode[name]?.[4]! / 2);
+          graphMin = Math.floor(graphMid - nameMode[name]?.[4]! / 2);
+        }
+
+        if (nameMode[name]?.[3]! !== null && graphMin < nameMode[name]?.[3]!) {
+          const shift = nameMode[name]?.[3]! - graphMin;
+          graphMax += shift;
+          graphMin += shift;
         }
 
         for (const history of historyList) {
@@ -148,6 +155,7 @@ window.addEventListener("load", async () => {
       const labelColor = oklchtorgbstr({ l: 0.7, c: tc, h: th });
       const underColor = oklchtorgbstr({ l: 0.9, c: tc, h: th });
       const graphColor = oklchtorgbstr({ l: 0.9, c: tc, h: th });
+      const lineColor = oklchtorgbstr({ l: 0.7, c: tc, h: th });
       const bgColor = oklchtorgbstr({ l: 0.95, c: tc, h: th });
 
       const cardDiv = document.createElement("div");
@@ -156,7 +164,6 @@ window.addEventListener("load", async () => {
       cardDiv.style.setProperty("--num-color", numColor);
       cardDiv.style.setProperty("--unit-color", unitColor);
       cardDiv.style.setProperty("--label-color", labelColor);
-      cardDiv.style.setProperty("--graph-color", graphColor);
       cardDiv.style.setProperty("--under-color", underColor);
       cardDiv.style.setProperty("--bg-color", bgColor);
       numberLine.appendChild(cardDiv);
@@ -167,7 +174,12 @@ window.addEventListener("load", async () => {
 
       const backgroundDiv = document.createElement("div");
       backgroundDiv.classList.add("number_card_background");
-      backgroundDiv.innerHTML = `<svg class="number_card_background_svg" preserveAspectRatio="none" viewBox="0 0 100 100"><path d="M0 100 ${strokePath} L100 100 Z" fill="${graphColor}"/></svg>`;
+      backgroundDiv.innerHTML = [
+        '<svg class="number_card_background_svg" preserveAspectRatio="none" viewBox="0 0 100 100">',
+        `<path d="M0 100 ${strokePath} L100 100 Z" fill="${graphColor}"/>`,
+        `<path d="M-100 50 ${strokePath}" stroke="${lineColor}"/>`,
+        "</svg>",
+      ].join("\n");
       backgroundDivList.push({ name, element: backgroundDiv });
       upperDiv.appendChild(backgroundDiv);
 
