@@ -141,7 +141,7 @@ window.addEventListener("load", async () => {
         for (const history of historyList) {
           const x = ((history.time - now + back) / back) * 100;
           const y =
-            100 - ((history.value - graphMin) / (graphMax - graphMin)) * 100;
+            99 - ((history.value - graphMin) / (graphMax - graphMin)) * 98;
           strokePath += `L${x} ${y}`;
         }
       }
