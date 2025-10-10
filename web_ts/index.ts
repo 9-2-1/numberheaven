@@ -1,8 +1,15 @@
 const layout = [
-  ["goldie"],
-  ["anki", "bbdc"],
-  ["tagspaces", "tagspaces_todo", "zhihu"],
-  ["bilibili", "xiaohongshu", "douyin"],
+  [
+    "goldie",
+    "anki",
+    "bbdc",
+    "tagspaces",
+    "tagspaces_todo",
+    "zhihu",
+    "bilibili",
+    "xiaohongshu",
+    "douyin",
+  ],
 ];
 
 function rgb(r: number, g: number, b: number) {
@@ -45,187 +52,279 @@ const nameMode: Record<
   douyin: ["抖音稍后再看", "视频", rgb(22, 24, 35), 0, 20],
 };
 
-window.addEventListener("load", async () => {
-  const numbers: {
-    [name: string]: {
+let numbers: {
+  [name: string]: {
+    value: number;
+    history: {
+      time: number;
       value: number;
-      history: {
-        time: number;
-        value: number;
-      }[];
-    };
-  } = await (await fetch("get_numbers")).json();
+    }[];
+  };
+} = {};
+
+const numberMap: Record<string, HTMLDivElement> = {};
+
+function initNumbersDiv() {
   const numbersDiv = document.getElementById("numbers")!;
-  const backgroundDivList: { name: string; element: HTMLDivElement }[] = [];
   for (const line of layout) {
     const numberLine = document.createElement("div");
     numberLine.classList.add("number_line");
     for (const name of line) {
-      // <div class="number_card">
-      //   <div class="number_card_upper">
-      //     <div class="number_card_background"></div>
-      //     <div class="number_name">点数</div>
-      //     <div class="number_value">
-      //       <div class="number_value_num">100</div>
-      //       <div class="number_value_unit">cd</div>
-      //     </div>
-      //     <div class="number_history_max">100</div>
-      //     <div class="number_history_min">0</div>
-      //   </div>
-      //   <div class="number_card_lower">
-      //     <div class="number_history_length">7天</div>
-      //     <div class="number_history_last">5/1 12:34</div>
-      //   </div>
-      // </div>
-
-      let strokePath = "";
-      let graphMax = numbers[name]?.value ?? 0;
-      let graphMin = graphMax;
-      let lasttime = "";
-
-      let historyList = Array.from(numbers[name]?.history ?? []); // 复制数组
-
-      if (historyList.length > 0) {
-        let now = new Date().getTime() / 1000;
-        let back = 7 * 24 * 60 * 60; // 7天
-
-        lasttime = new Date(
-          historyList[historyList.length - 1].time * 1000,
-        ).toLocaleString();
-
-        historyList.push({
-          time: now,
-          value: numbers[name].value,
-        });
-
-        let backleft: { time: number; value: number } | null = null;
-        while (historyList.length > 0 && historyList[0].time < now - back) {
-          backleft = historyList.shift()!;
-        }
-
-        if (backleft) {
-          const historyleft = historyList[0]!;
-          historyList.unshift({
-            time: now - back,
-            value:
-              backleft.value +
-              ((historyleft.value - backleft.value) *
-                (now - back - backleft.time)) /
-                (historyleft.time - backleft.time),
-          });
-        } else {
-          const historyleft = historyList[0]!;
-          historyList.unshift({
-            time: now - back,
-            value: historyleft.value,
-          });
-        }
-
-        for (const history of historyList) {
-          graphMax = Math.max(graphMax, history.value);
-          graphMin = Math.min(graphMin, history.value);
-        }
-
-        if (graphMax - graphMin < nameMode[name]?.[4]!) {
-          const graphMid = (graphMax + graphMin) / 2;
-          graphMax = Math.ceil(graphMid + nameMode[name]?.[4]! / 2);
-          graphMin = Math.floor(graphMid - nameMode[name]?.[4]! / 2);
-        }
-
-        if (nameMode[name]?.[3]! !== null && graphMin < nameMode[name]?.[3]!) {
-          const shift = nameMode[name]?.[3]! - graphMin;
-          graphMax += shift;
-          graphMin += shift;
-        }
-
-        for (const history of historyList) {
-          const x = ((history.time - now + back) / back) * 100;
-          const y =
-            99 - ((history.value - graphMin) / (graphMax - graphMin)) * 98;
-          strokePath += `L${x} ${y}`;
-        }
-      }
-
-      const theme = nameMode[name]?.[2];
-      const { l: tl, c: tc, h: th } = convertRgbToOklch(theme);
-
-      const titleColor = oklchtorgbstr({ l: 0.4, c: tc, h: th });
-      const numColor = oklchtorgbstr({ l: 0.5, c: tc, h: th });
-      const unitColor = oklchtorgbstr({ l: 0.6, c: tc, h: th });
-      const labelColor = oklchtorgbstr({ l: 0.7, c: tc, h: th });
-      const underColor = oklchtorgbstr({ l: 0.9, c: tc, h: th });
-      const graphColor = oklchtorgbstr({ l: 0.9, c: tc, h: th });
-      const lineColor = oklchtorgbstr({ l: 0.7, c: tc, h: th });
-      const bgColor = oklchtorgbstr({ l: 0.95, c: tc, h: th });
-
       const cardDiv = document.createElement("div");
       cardDiv.classList.add("number_card");
-      cardDiv.style.setProperty("--title-color", titleColor);
-      cardDiv.style.setProperty("--num-color", numColor);
-      cardDiv.style.setProperty("--unit-color", unitColor);
-      cardDiv.style.setProperty("--label-color", labelColor);
-      cardDiv.style.setProperty("--under-color", underColor);
-      cardDiv.style.setProperty("--bg-color", bgColor);
       numberLine.appendChild(cardDiv);
-
-      const upperDiv = document.createElement("div");
-      upperDiv.classList.add("number_card_upper");
-      cardDiv.appendChild(upperDiv);
-
-      const backgroundDiv = document.createElement("div");
-      backgroundDiv.classList.add("number_card_background");
-      backgroundDiv.innerHTML = [
-        '<svg class="number_card_background_svg" preserveAspectRatio="none" viewBox="0 0 100 100">',
-        `<path d="M0 101 ${strokePath} L100 101 Z" fill="${lineColor}" transform="translate(0, -1)"/>`,
-        `<path d="M0 101 ${strokePath} L100 101 Z" fill="${graphColor}" transform="translate(0, 1)"/>`,
-        "</svg>",
-      ].join("\n");
-      backgroundDivList.push({ name, element: backgroundDiv });
-      upperDiv.appendChild(backgroundDiv);
-
-      const nameDiv = document.createElement("div");
-      nameDiv.classList.add("number_name");
-      nameDiv.textContent = nameMode[name]?.[0] ?? "???";
-      upperDiv.appendChild(nameDiv);
-
-      const valueDiv = document.createElement("div");
-      valueDiv.classList.add("number_value");
-      upperDiv.appendChild(valueDiv);
-
-      const valueNumDiv = document.createElement("div");
-      valueNumDiv.classList.add("number_value_num");
-      valueNumDiv.textContent = numbers[name]?.value.toString() ?? "???";
-      valueDiv.appendChild(valueNumDiv);
-
-      const valueUnitDiv = document.createElement("div");
-      valueUnitDiv.classList.add("number_value_unit");
-      valueUnitDiv.textContent = nameMode[name]?.[1] ?? "???";
-      valueDiv.appendChild(valueUnitDiv);
-
-      const historyMaxDiv = document.createElement("div");
-      historyMaxDiv.classList.add("number_history_max");
-      historyMaxDiv.textContent = graphMax.toString();
-      upperDiv.appendChild(historyMaxDiv);
-
-      const historyMinDiv = document.createElement("div");
-      historyMinDiv.classList.add("number_history_min");
-      historyMinDiv.textContent = graphMin.toString();
-      upperDiv.appendChild(historyMinDiv);
-
-      const lowerDiv = document.createElement("div");
-      lowerDiv.classList.add("number_card_lower");
-      cardDiv.appendChild(lowerDiv);
-
-      const historyLengthDiv = document.createElement("div");
-      historyLengthDiv.classList.add("number_history_length");
-      historyLengthDiv.textContent = "7天";
-      lowerDiv.appendChild(historyLengthDiv);
-
-      const historyLastDiv = document.createElement("div");
-      historyLastDiv.classList.add("number_history_last");
-      historyLastDiv.textContent = lasttime;
-      lowerDiv.appendChild(historyLastDiv);
+      numberMap[name] = cardDiv;
     }
     numbersDiv.appendChild(numberLine);
   }
+}
+
+async function updateNumberAsync() {
+  numbers = await (await fetch("get_numbers")).json();
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+window.addEventListener("load", async () => {
+  initNumbersDiv();
+  while (1) {
+    await updateNumberAsync();
+    updateNumberDiv();
+    await sleep(10 * 1000);
+  }
 });
+
+window.addEventListener("resize", () => {
+  updateNumberDiv();
+});
+
+function updateNumberDiv() {
+  const tnow = new Date().getTime() / 1000;
+  for (const name of Object.keys(numbers)) {
+    const cardDiv = numberMap[name];
+    if (!cardDiv) {
+      continue;
+    }
+    const number = numbers[name];
+    if (!number) {
+      // TODO: Show placeholder
+      continue;
+    }
+
+    // 计算x轴时间范围
+    let xMin = tnow - 6.5 * 24 * 60 * 60; // -6.5d
+    let xMax = tnow + 0.5 * 24 * 60 * 60; // +0.5d
+    let yMin = number.value;
+    let yMax = number.value;
+
+    let lasttime = number.history[number.history.length - 1].time;
+
+    // 裁剪历史记录
+    const historyList = cropHistory(number.history, xMin, xMax);
+
+    // 计算y轴范围
+    for (const history of historyList) {
+      yMax = Math.max(yMax, history.value);
+      yMin = Math.min(yMin, history.value);
+    }
+
+    const yRange = nameMode[name]?.[4] ?? 20;
+    const yMinMin = nameMode[name]?.[3] ?? null;
+
+    if (yMinMin !== null && yMin < yMinMin) {
+      const shift = yMinMin - yMin;
+      yMax += shift;
+      yMin += shift;
+    }
+
+    yMax += yRange / 2;
+    yMin -= yRange / 2;
+
+    yMax = Math.ceil(yMax);
+    yMin = Math.floor(yMin);
+
+    let line: { x: number; y: number }[] = [];
+    for (const history of historyList) {
+      const x = history.time;
+      const y = history.value;
+      line.push({ x, y });
+    }
+
+    const themeColor = nameMode[name]?.[2] ?? rgb(179, 91, 51);
+    const { l: tl, c: tc, h: th } = convertRgbToOklch(themeColor);
+
+    const titleColor = oklchtorgbstr({ l: 0.6, c: tc, h: th });
+    const numColor = oklchtorgbstr({ l: 0.6, c: tc, h: th });
+    const labelColor = oklchtorgbstr({ l: 0.8, c: tc, h: th });
+    const lineColor = oklchtorgbstr({ l: 0.7, c: tc, h: th });
+    const bgColor = oklchtorgbstr({ l: 0.95, c: tc, h: th });
+
+    const xSize = xMax - xMin;
+    const ySize = yMax - yMin;
+
+    const xPixel = cardDiv.clientWidth;
+    const yPixel = cardDiv.clientHeight;
+    console.log(xPixel, yPixel);
+
+    const svg = [];
+    const AXIS_MARGIN = 0;
+    const xAxisYv = yMin + yRange / 2;
+    const xAxisY = (yPixel * (yMax - xAxisYv)) / ySize;
+    const yAxisXv = xMax - 0.5 * 24 * 60 * 60; // tnow
+    const yAxisX = (xPixel * (yAxisXv - xMin)) / xSize;
+    svg.push(`<svg viewBox="0 0 ${xPixel} ${yPixel}">`);
+
+    // 背景
+    svg.push(
+      `<rect x="0" y="0" width="${xPixel}" height="${yPixel}" fill="${bgColor}" />`,
+    );
+
+    // x轴
+    svg.push(
+      `<line x1="${AXIS_MARGIN}" y1="${xAxisY}" x2="${xPixel - AXIS_MARGIN}" y2="${xAxisY}" stroke="${labelColor}" stroke-width="1" />`,
+    );
+
+    // x间隔
+    const xInterval = 24 * 60 * 60; // 1d
+    const xBegin = Math.ceil(xMin / xInterval) * xInterval;
+    // begin + interval
+
+    let x = xBegin;
+    while (x <= xMax) {
+      const xAxisX = (xPixel * (x - xMin)) / xSize;
+      svg.push(
+        `<line x1="${xAxisX}" y1="${xAxisY - 5}" x2="${xAxisX}" y2="${xAxisY + 5}" stroke="${labelColor}" stroke-width="1" />`,
+      );
+      // 绘制x轴标签
+      const date = new Date(x * 1000).getDate();
+      const xLabel =
+        date == 1
+          ? `${new Date(x * 1000).getMonth() + 1}/${date}`
+          : date.toString();
+
+      svg.push(
+        `<text x="${xAxisX}" y="${xAxisY - 5}" fill="${labelColor}" font-size="12" text-anchor="middle">${xLabel}</text>`,
+      );
+      x += xInterval;
+    }
+
+    // y轴
+    svg.push(
+      `<line x1="${yAxisX}" y1="${yPixel - AXIS_MARGIN}" x2="${yAxisX}" y2="${AXIS_MARGIN}" stroke="${labelColor}" stroke-width="1" />`,
+    );
+
+    // y间隔
+    const yIntervalMin = (ySize / yPixel) * 20;
+    let yInterval = 10000000;
+    while (yInterval / 10 > yIntervalMin) {
+      yInterval /= 10;
+    }
+    if (yInterval / 5 > yIntervalMin) {
+      yInterval /= 5;
+    } else if (yInterval / 2 > yIntervalMin) {
+      yInterval /= 2;
+    }
+    let y = Math.ceil(yMin / yInterval) * yInterval;
+    while (y <= yMax) {
+      const yAxisY = (yPixel * (yMax - y)) / ySize;
+      svg.push(
+        `<line x1="${yAxisX - 5}" y1="${yAxisY}" x2="${yAxisX + 5}" y2="${yAxisY}" stroke="${labelColor}" stroke-width="1" />`,
+      );
+      // 绘制y轴标签
+      const yLabel = y.toString();
+      svg.push(
+        `<text x="${yAxisX - 10}" y="${yAxisY}" fill="${labelColor}" font-size="12" text-anchor="end" dominant-baseline="middle">${yLabel}</text>`,
+      );
+      y += yInterval;
+    }
+
+    // 线
+    const linePath = line
+      .map(
+        (p) =>
+          `${(xPixel * (p.x - xMin)) / xSize} ${(yPixel * (yMax - p.y)) / ySize}`,
+      )
+      .join(" L ");
+    svg.push(
+      `<path d="M ${linePath}" stroke="${lineColor}" stroke-width="2" fill="none" />`,
+    );
+
+    const title = nameMode[name]?.[0] ?? name;
+    const unit = nameMode[name]?.[1] ?? "";
+
+    // 标题
+    svg.push(
+      `<text x="5" y="21" fill="${titleColor}" font-size="16" font-weight="bold" text-anchor="left">${title}</text>`,
+    );
+    // 数值
+    svg.push(`<text x="5" y="${yPixel / 2}" dominant-baseline="middle">`);
+    svg.push(
+      `<tspan fill="${numColor}" font-size="${yPixel * 0.6}" font-weight="bold" text-anchor="left" opacity="0.3">${number.value}</tspan>`,
+    );
+    svg.push(
+      `<tspan fill="${numColor}" font-size="${yPixel * 0.2}" font-weight="bold" text-anchor="left" opacity="0.3">${unit}</tspan>`,
+    );
+    svg.push("</text>");
+    // 更新时间
+    svg.push(
+      `<text x="${xPixel}" y="${yPixel - 5}" fill="${titleColor}" font-size="16" text-anchor="end">${new Date(xMax * 1000).toLocaleString()}</text>`,
+    );
+
+    svg.push("</svg>");
+    cardDiv.innerHTML = svg.join("");
+  }
+}
+
+function cropHistory(
+  history: { time: number; value: number }[],
+  xMin: number,
+  xMax: number,
+) {
+  let historyList = Array.from(history); // 复制数组
+
+  // 右侧补足
+  if (historyList[historyList.length - 1].time < xMax) {
+    historyList.push({
+      time: xMax,
+      value: historyList[historyList.length - 1].value,
+    });
+  }
+
+  // 检查右侧超出
+  let outright = null;
+  while (
+    historyList.length > 0 &&
+    historyList[historyList.length - 1].time > xMax
+  ) {
+    outright = historyList.pop()!;
+  }
+  if (outright) {
+    const historyright = historyList[historyList.length - 1]!;
+    historyList.unshift({
+      time: xMax,
+      value:
+        outright.value +
+        ((historyright.value - outright.value) * (xMax - outright.time)) /
+          (historyright.time - outright.time),
+    });
+  }
+
+  // 检查左侧超出
+  let outleft = null;
+  while (historyList.length > 0 && historyList[0].time < xMin) {
+    outleft = historyList.shift()!;
+  }
+  if (outleft) {
+    const historyleft = historyList[0]!;
+    historyList.unshift({
+      time: xMin,
+      value:
+        outleft.value +
+        ((historyleft.value - outleft.value) * (xMin - outleft.time)) /
+          (historyleft.time - outleft.time),
+    });
+  }
+  return historyList;
+}
