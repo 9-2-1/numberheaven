@@ -1,5 +1,6 @@
 from aiohttp import web
 from datetime import datetime
+import argparse
 import traceback
 import sqlite3
 import json
@@ -9,9 +10,11 @@ logging.basicConfig(level=logging.INFO)
 
 database: sqlite3.Connection
 
+appid: list[str] = []
 
 async def post_update(req: web.Request) -> web.Response:
-    if req.headers["APPID"] not in {"ArigiBBDC1207", "Arigi70005996"}:
+    global appid
+    if req.headers["APPID"] not in appid:
         return web.Response(text="Error: Wrong APPID", status=400)
     try:
         name = req.query["name"]
@@ -51,7 +54,13 @@ async def get_index(req: web.Request) -> web.FileResponse:
 
 
 if __name__ == "__main__":
-    database = sqlite3.connect("main.db")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", default=32451, type=int)
+    parser.add_argument("--db", default="main.db")
+    args = parser.parse_args()
+    with open("APPID.txt", "r") as f:
+        appid = f.read().splitlines()
+    database = sqlite3.connect(args.db)
     database.execute(
         "create table if not exists history ("  #
         " name text,"
