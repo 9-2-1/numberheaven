@@ -37,8 +37,8 @@ h1 {
   display: flex;
   flex-grow: 1;
   flex-direction: column;
-  min-width: 300px;
-  max-width: 400px;
+  min-width: 350px;
+  max-width: 450px;
   height: 200px;
   background-color: #ffffff;
   border-radius: 5px;

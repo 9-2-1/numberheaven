@@ -157,7 +157,7 @@ function updateNumberDiv() {
 
     const titleColor = oklchtorgbstr({ l: 0.6, c: tc, h: th });
     const numColor = oklchtorgbstr({ l: 0.6, c: tc, h: th });
-    const labelColor = oklchtorgbstr({ l: 0.8, c: tc, h: th });
+    const labelColor = oklchtorgbstr({ l: 0.7, c: tc, h: th });
     const lineColor = oklchtorgbstr({ l: 0.7, c: tc, h: th });
     const bgColor = oklchtorgbstr({ l: 0.95, c: tc, h: th });
 
@@ -252,20 +252,14 @@ function updateNumberDiv() {
     );
 
     const title = nameMode[name]?.[0] ?? name;
-    const unit = nameMode[name]?.[1] ?? "";
 
     // 标题
     svg.push(
       `<text x="5" y="21" fill="${titleColor}" font-size="16" font-weight="bold" text-anchor="left">${title}</text>`,
     );
     // 数值
-    svg.push(`<text x="5" y="${yPixel / 2}" dominant-baseline="middle">`);
-    svg.push(
-      `<tspan fill="${numColor}" font-size="${yPixel * 0.3}" font-weight="bold" text-anchor="left" opacity="0.5">${number.value}</tspan>`,
-    );
-    svg.push(
-      `<tspan fill="${numColor}" font-size="${yPixel * 0.15}" font-weight="bold" text-anchor="left" opacity="0.5">${unit}</tspan>`,
-    );
+    svg.push(`<text x="${xPixel / 2}" y="${yPixel / 2}" dominant-baseline="middle" text-anchor="middle"`)
+    svg.push(` fill="${numColor}" font-size="${yPixel * 0.6}" font-weight="bold" opacity="0.3">${number.value}`)
     svg.push("</text>");
     // 更新时间
     svg.push(
