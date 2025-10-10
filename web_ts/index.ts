@@ -166,7 +166,6 @@ function updateNumberDiv() {
 
     const xPixel = cardDiv.clientWidth;
     const yPixel = cardDiv.clientHeight;
-    console.log(xPixel, yPixel);
 
     const svg = [];
     const AXIS_MARGIN = 0;
@@ -188,7 +187,10 @@ function updateNumberDiv() {
 
     // x间隔
     const xInterval = 24 * 60 * 60; // 1d
-    const xBegin = Math.ceil(xMin / xInterval) * xInterval;
+    const timezoneOffset = new Date().getTimezoneOffset() * 60;
+    const xBegin =
+      Math.ceil((xMin - timezoneOffset) / xInterval) * xInterval +
+      timezoneOffset;
     // begin + interval
 
     let x = xBegin;
@@ -258,8 +260,12 @@ function updateNumberDiv() {
       `<text x="5" y="21" fill="${titleColor}" font-size="16" font-weight="bold" text-anchor="left">${title}</text>`,
     );
     // 数值
-    svg.push(`<text x="${xPixel / 2}" y="${yPixel / 2}" dominant-baseline="middle" text-anchor="middle"`)
-    svg.push(` fill="${numColor}" font-size="${yPixel * 0.6}" font-weight="bold" opacity="0.3">${number.value}`)
+    svg.push(
+      `<text x="${xPixel / 2}" y="${yPixel / 2}" dominant-baseline="middle" text-anchor="middle"`,
+    );
+    svg.push(
+      ` fill="${numColor}" font-size="${yPixel * 0.6}" font-weight="bold" opacity="0.3">${number.value}`,
+    );
     svg.push("</text>");
     // 更新时间
     svg.push(
