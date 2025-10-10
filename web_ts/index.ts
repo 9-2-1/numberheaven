@@ -261,15 +261,15 @@ function updateNumberDiv() {
     // 数值
     svg.push(`<text x="5" y="${yPixel / 2}" dominant-baseline="middle">`);
     svg.push(
-      `<tspan fill="${numColor}" font-size="${yPixel * 0.6}" font-weight="bold" text-anchor="left" opacity="0.3">${number.value}</tspan>`,
+      `<tspan fill="${numColor}" font-size="${yPixel * 0.3}" font-weight="bold" text-anchor="left" opacity="0.5">${number.value}</tspan>`,
     );
     svg.push(
-      `<tspan fill="${numColor}" font-size="${yPixel * 0.2}" font-weight="bold" text-anchor="left" opacity="0.3">${unit}</tspan>`,
+      `<tspan fill="${numColor}" font-size="${yPixel * 0.15}" font-weight="bold" text-anchor="left" opacity="0.5">${unit}</tspan>`,
     );
     svg.push("</text>");
     // 更新时间
     svg.push(
-      `<text x="${xPixel}" y="${yPixel - 5}" fill="${titleColor}" font-size="16" text-anchor="end">${new Date(xMax * 1000).toLocaleString()}</text>`,
+      `<text x="${xPixel}" y="${yPixel - 5}" fill="${titleColor}" font-size="16" text-anchor="end">${new Date(lasttime * 1000).toLocaleString()}</text>`,
     );
 
     svg.push("</svg>");
