@@ -50,7 +50,7 @@ async def get_numbers(req: web.Request) -> web.Response:
 
 
 async def get_index(req: web.Request) -> web.FileResponse:
-    return web.FileResponse("index.html")
+    return web.FileResponse("web/index.html")
 
 
 if __name__ == "__main__":
@@ -83,4 +83,4 @@ if __name__ == "__main__":
     app.router.add_get("/get_numbers", get_numbers)
     app.router.add_get("/", get_index)
     app.router.add_static("/", "web")
-    web.run_app(app, host="127.0.0.1", port=32451)
+    web.run_app(app, host="127.0.0.1", port=args.port)
