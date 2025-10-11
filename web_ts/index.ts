@@ -90,8 +90,13 @@ function sleep(ms: number) {
 window.addEventListener("load", async () => {
   initNumbersDiv();
   while (1) {
-    await updateNumberAsync();
-    updateNumberDiv();
+    try {
+      await updateNumberAsync();
+      updateNumberDiv();
+    } catch (error) {
+      console.error("Error updating numbers:", error);
+      // 自动重试
+    }
     await sleep(10 * 1000);
   }
 });
