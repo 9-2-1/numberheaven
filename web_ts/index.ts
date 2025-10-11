@@ -114,7 +114,38 @@ function updateNumberDiv() {
     }
     const number = numbers[name];
     if (!number) {
-      // TODO: Show placeholder
+      // No Data
+      const title = nameMode[name]?.[0] ?? name;
+      const themeColor = nameMode[name]?.[2] ?? rgb(179, 91, 51);
+      const { l: tl, c: tc, h: th } = convertRgbToOklch(themeColor);
+      const titleColor = oklchtorgbstr({ l: 0.6, c: tc, h: th });
+      const numColor = oklchtorgbstr({ l: 0.6, c: tc, h: th });
+      const bgColor = oklchtorgbstr({ l: 0.95, c: tc, h: th });
+
+      const xPixel = cardDiv.clientWidth;
+      const yPixel = cardDiv.clientHeight;
+
+      const svg = [];
+      svg.push(`<svg viewBox="0 0 ${xPixel} ${yPixel}">`);
+
+      // 背景
+      svg.push(
+        `<rect x="0" y="0" width="${xPixel}" height="${yPixel}" fill="${bgColor}" />`,
+      );
+      // 标题
+      svg.push(
+        `<text x="5" y="21" fill="${titleColor}" font-size="16" font-weight="bold" text-anchor="left">${title}</text>`,
+      );
+      // 数值
+      svg.push(
+        `<text x="${xPixel / 2}" y="${yPixel / 2}" dominant-baseline="middle" text-anchor="middle"`,
+      );
+      svg.push(
+        ` fill="${numColor}" font-size="${yPixel * 0.6}" font-weight="bold" opacity="0.3">NoData`,
+      );
+      svg.push("</text>");
+      svg.push("</svg>");
+      cardDiv.innerHTML = svg.join("");
       continue;
     }
 
