@@ -195,7 +195,6 @@ function renderDataCard(
   graph.renderXAxis(xAxisYv, 24 * 60 * 60, -tzoffset, labelColor, fdate);
   graph.renderYAxis(yAxisXv, yInterval, 0, labelColor, null);
   graph.renderLine(points, lineColor, "solid");
-  graph.renderPoints(points, lineColor);
 
   const title = nameMode[name]?.[0] ?? name;
   graph.renderTitle(title, titleColor);
