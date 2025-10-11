@@ -126,10 +126,7 @@ class SVGGraph {
       y += yInterval;
     }
   }
-  renderPoints(
-    points: { x: number; y: number }[],
-    color: string,
-  ) {
+  renderPoints(points: { x: number; y: number }[], color: string) {
     let posToPixel = (pos: { x: number; y: number }) => ({
       x: (this.xPixel * (pos.x - this.xMin)) / (this.xMax - this.xMin),
       y: (this.yPixel * (this.yMax - pos.y)) / (this.yMax - this.yMin),
@@ -138,13 +135,14 @@ class SVGGraph {
     while (linePixel.length > 1 && linePixel[0].x < -5) {
       linePixel.shift();
     }
-    while (linePixel.length > 1 && linePixel[linePixel.length - 1].x > this.xPixel + 5) {
+    while (
+      linePixel.length > 1 &&
+      linePixel[linePixel.length - 1].x > this.xPixel + 5
+    ) {
       linePixel.pop();
     }
     for (const p of linePixel) {
-      this.svg.push(
-        `<circle cx="${p.x}" cy="${p.y}" r="2" fill="${color}" />`,
-      );
+      this.svg.push(`<circle cx="${p.x}" cy="${p.y}" r="2" fill="${color}" />`);
     }
   }
   renderLine(
@@ -160,7 +158,10 @@ class SVGGraph {
     while (linePixel.length > 1 && linePixel[1].x < 0) {
       linePixel.shift();
     }
-    while (linePixel.length > 1 && linePixel[linePixel.length - 2].x > this.xPixel) {
+    while (
+      linePixel.length > 1 &&
+      linePixel[linePixel.length - 2].x > this.xPixel
+    ) {
       linePixel.pop();
     }
     const linePath = linePixel.map((p) => `${p.x} ${p.y}`).join("L");
