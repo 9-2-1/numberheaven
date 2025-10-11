@@ -192,7 +192,7 @@ function renderDataCard(
   const yInterval = graph.findYInterval(20);
 
   graph.renderBackground(bgColor);
-  graph.renderXAxis(xAxisYv, 24 * 60 * 60, -tzoffset, labelColor, fdate);
+  graph.renderXAxis(xAxisYv, 24 * 60 * 60, tzoffset, labelColor, fdate);
   graph.renderYAxis(yAxisXv, yInterval, 0, labelColor, null);
   graph.renderLine(points, lineColor, "solid");
 
