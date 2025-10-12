@@ -42,6 +42,7 @@ async def get_numbers(req: web.Request) -> web.Response:
     for (last,) in database.execute("select lastupdate from lastupdate"):
         last_update = last
     if cache_timestamp != last_update:
+        cache_timestamp = last_update
         ret = {
             name: {
                 "value": value,
