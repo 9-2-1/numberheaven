@@ -75,7 +75,7 @@ async def get_numbers(req: web.Request) -> web.Response:
         "Cache-Control": "no-cache",
         "Content-Type": "application/json",
     }
-    if int(cache_timestamp) != int(req_timestamp):
+    if int(cache_timestamp) == int(req_timestamp):
         return web.Response(status=304, headers=headers)
     return web.Response(text=ret_json)
 
