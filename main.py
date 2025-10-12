@@ -77,7 +77,7 @@ async def get_numbers(req: web.Request) -> web.Response:
     }
     if int(cache_timestamp) == int(req_timestamp):
         return web.Response(status=304, headers=headers)
-    return web.Response(text=ret_json)
+    return web.Response(text=ret_json, headers=headers)
 
 
 async def get_index(req: web.Request) -> web.FileResponse:
