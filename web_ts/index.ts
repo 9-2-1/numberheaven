@@ -158,7 +158,8 @@ function renderDataCard(
   const lasttime = number.history[number.history.length - 1].time;
   // 历史记录
   const historyList = Array.from(number.history);
-  historyList.push({ time: xMax, value: number.value });
+  // 延长最后一个点，使其更容易查看。
+  historyList.push({ time: xMax + (xMax - xMin) * 0.1, value: number.value });
   const points = historyList.map((history) => ({
     x: history.time,
     y: history.value,
