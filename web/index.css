@@ -11,6 +11,16 @@ body {
   background-color: #f5f5f5;
   color: #000000;
   padding: 20px;
+  font-family: "Fira Mono", monospace;
+}
+
+@font-face {
+  font-family: "Fira Mono";
+  font-display: swap;
+  src:
+    url("FiraMono-Regular.woff2") format("woff2"),
+    url("FiraMono-Regular.woff") format("woff"),
+    url("FiraMono-Regular.ttf") format("truetype");
 }
 
 h1 {
