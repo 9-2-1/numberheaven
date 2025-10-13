@@ -7,17 +7,25 @@ class SVGGraph {
   yMax = 10;
   svg: string[] = [];
   constructor() {}
+
   setRange(xMin: number, xMax: number, yMin: number, yMax: number) {
     this.xMin = xMin;
     this.xMax = xMax;
     this.yMin = yMin;
     this.yMax = yMax;
   }
+
   autoYRange(points: { x: number; y: number }[]) {
     let i = 0;
     // left bound
     while (i < points.length && points[i].x < this.xMin) {
       i++;
+    }
+    if (i >= points.length) {
+      // 所有点都在xMin的左边
+      this.yMin = points[points.length - 1].y;
+      this.yMax = points[points.length - 1].y;
+      return;
     }
     if (i != 0) {
       const vY =
@@ -45,29 +53,51 @@ class SVGGraph {
       this.yMax = Math.max(this.yMax, vY);
     }
   }
-  findYInterval(yMinGap: number) {
-    const yIntervalMin = ((this.yMax - this.yMin) / this.yPixel) * yMinGap;
-    let yInterval = 10000000;
-    while (yInterval / 10 > yIntervalMin) {
-      yInterval /= 10;
+
+  findXInterval(xUnit: number, xMinGap: number) {
+    const xIntervalMin = ((this.xMax - this.xMin) / this.xPixel) * xMinGap;
+    let xInterval = xUnit;
+    while (xInterval < xIntervalMin) {
+      xInterval *= 10;
     }
-    if (yInterval / 5 > yIntervalMin) {
-      yInterval /= 5;
-    } else if (yInterval / 2 > yIntervalMin) {
-      yInterval /= 2;
+    if (xInterval > xUnit) {
+      if (xInterval / 5 > xIntervalMin) {
+        xInterval /= 5;
+      } else if (xInterval / 2 > xIntervalMin) {
+        xInterval /= 2;
+      }
+    }
+    return xInterval;
+  }
+
+  findYInterval(yUnit: number, yMinGap: number) {
+    const yIntervalMin = ((this.yMax - this.yMin) / this.yPixel) * yMinGap;
+    let yInterval = yUnit;
+    while (yInterval < yIntervalMin) {
+      yInterval *= 10;
+    }
+    if (yInterval > yUnit) {
+      if (yInterval / 5 > yIntervalMin) {
+        yInterval /= 5;
+      } else if (yInterval / 2 > yIntervalMin) {
+        yInterval /= 2;
+      }
     }
     return yInterval;
   }
+
   renderStart(cardDiv: HTMLDivElement) {
     this.xPixel = cardDiv.clientWidth;
     this.yPixel = cardDiv.clientHeight;
     this.svg = [`<svg viewBox="0 0 ${this.xPixel} ${this.yPixel}">`];
   }
+
   renderBackground(color: string) {
     this.svg.push(
       `<rect x="0" y="0" width="${this.xPixel}" height="${this.yPixel}" fill="${color}"/>`,
     );
   }
+
   // x轴
   renderXAxis(
     yPos: number,
@@ -97,6 +127,7 @@ class SVGGraph {
       x += xInterval;
     }
   }
+
   // y轴
   renderYAxis(
     xPos: number,
@@ -126,7 +157,12 @@ class SVGGraph {
       y += yInterval;
     }
   }
-  renderPoints(points: { x: number; y: number }[], color: string) {
+
+  renderPoints(
+    points: { x: number; y: number }[],
+    color: string,
+    width: number,
+  ) {
     let posToPixel = (pos: { x: number; y: number }) => ({
       x: (this.xPixel * (pos.x - this.xMin)) / (this.xMax - this.xMin),
       y: (this.yPixel * (this.yMax - pos.y)) / (this.yMax - this.yMin),
@@ -142,13 +178,17 @@ class SVGGraph {
       linePixel.pop();
     }
     for (const p of linePixel) {
-      this.svg.push(`<circle cx="${p.x}" cy="${p.y}" r="2" fill="${color}" />`);
+      this.svg.push(
+        `<circle cx="${p.x}" cy="${p.y}" r="${width}" fill="${color}" />`,
+      );
     }
   }
+
   renderLine(
     points: { x: number; y: number }[],
     color: string,
     style: "solid" | "dashed",
+    width: number,
   ) {
     let posToPixel = (pos: { x: number; y: number }) => ({
       x: (this.xPixel * (pos.x - this.xMin)) / (this.xMax - this.xMin),
@@ -169,28 +209,32 @@ class SVGGraph {
       `<path d="M${linePath}" stroke="${color}" stroke-linecap="round" stroke-linejoin="round"`,
     );
     this.svg.push(
-      `stroke-width="2" fill="none" stroke-dasharray="${style === "dashed" ? "5,5" : ""}" />`,
+      `stroke-width="${width}" fill="none" stroke-dasharray="${style === "dashed" ? "5,5" : ""}" />`,
     );
   }
+
   renderTitle(title: string, color: string) {
     this.svg.push(
       `<text x="5" y="21" fill="${color}" font-size="16" font-weight="bold" text-anchor="left">${title}</text>`,
     );
   }
-  renderValue(value: number | string, color: string) {
+
+  renderValue(value: number | string, color: string, size: number) {
     this.svg.push(
       `<text x="${this.xPixel / 2}" y="${this.yPixel / 2}" dominant-baseline="middle" text-anchor="middle"`,
     );
     this.svg.push(
-      ` fill="${color}" font-size="${this.yPixel * 0.6}" font-weight="bold" opacity="0.3">${value}`,
+      ` fill="${color}" font-size="${this.yPixel * size}" font-weight="bold">${value}`,
     );
     this.svg.push("</text>");
   }
+
   renderUpdateTime(value: number, color: string) {
     this.svg.push(
       `<text x="${this.xPixel}" y="${this.yPixel - 5}" fill="${color}" font-size="16" text-anchor="end">${new Date(value * 1000).toLocaleString()}</text>`,
     );
   }
+
   renderTo(cardDiv: HTMLDivElement) {
     cardDiv.innerHTML = this.svg.join("");
   }

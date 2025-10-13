@@ -127,7 +127,7 @@ function colorSeries(themeColor: { r: number; g: number; b: number }) {
   const { l: tl, c: tc, h: th } = convertRgbToOklch(themeColor);
   return {
     titleColor: oklchtorgbstr({ l: 0.6, c: tc, h: th }),
-    numColor: oklchtorgbstr({ l: 0.6, c: tc, h: th }),
+    numColor: oklchtorgbstr({ l: 0.85, c: tc, h: th }),
     labelColor: oklchtorgbstr({ l: 0.7, c: tc, h: th }),
     lineColor: oklchtorgbstr({ l: 0.7, c: tc, h: th }),
     bgColor: oklchtorgbstr({ l: 0.95, c: tc, h: th }),
@@ -151,8 +151,8 @@ function renderDataCard(
   const graph = new SVGGraph();
   graph.renderStart(cardDiv);
   // 计算x轴时间范围
-  const xMin = tnow - 6.5 * 24 * 60 * 60; // -6.5d
-  const xMax = tnow + 0.5 * 24 * 60 * 60; // +0.5d
+  const xMin = tnow - 7 * 24 * 60 * 60;
+  const xMax = tnow;
   graph.xMin = xMin;
   graph.xMax = xMax;
   const lasttime = number.history[number.history.length - 1].time;
@@ -164,7 +164,6 @@ function renderDataCard(
     y: history.value,
   }));
   // 计算y轴范围
-  const yPad = 10;
   const yRange = nameMode[name]?.[4] ?? 20;
   const yMinMin = nameMode[name]?.[3] ?? null;
   graph.autoYRange(points);
@@ -178,6 +177,11 @@ function renderDataCard(
     graph.yMin = yMinMin;
   }
 
+  const xPad = (graph.xMax - graph.xMin) * 0.1;
+  graph.xMax += xPad;
+  graph.xMin -= xPad;
+
+  const yPad = (graph.yMax - graph.yMin) * 0.1;
   graph.yMax += yPad;
   graph.yMin -= yPad;
 
@@ -186,19 +190,19 @@ function renderDataCard(
     colorSeries(themeColor);
 
   const xAxisYv = graph.yMin + yPad;
-  const yAxisXv = graph.xMax - 0.5 * 24 * 60 * 60; // tnow
+  const yAxisXv = graph.xMax - xPad; // tnow
 
   const tzoffset = new Date().getTimezoneOffset() * 60;
-  const yInterval = graph.findYInterval(20);
+  const yInterval = graph.findYInterval(1, 20);
 
   graph.renderBackground(bgColor);
+  graph.renderValue(number.value, numColor, 0.6);
   graph.renderXAxis(xAxisYv, 24 * 60 * 60, tzoffset, labelColor, fdate);
   graph.renderYAxis(yAxisXv, yInterval, 0, labelColor, null);
-  graph.renderLine(points, lineColor, "solid");
+  graph.renderLine(points, lineColor, "solid", 2);
 
   const title = nameMode[name]?.[0] ?? name;
   graph.renderTitle(title, titleColor);
-  graph.renderValue(number.value, numColor);
   graph.renderUpdateTime(lasttime, titleColor);
 
   graph.renderTo(cardDiv);
@@ -211,7 +215,7 @@ function renderNoDataCard(cardDiv: HTMLDivElement, name: string) {
   const { titleColor, numColor, bgColor } = colorSeries(themeColor);
   graph.renderStart(cardDiv);
   graph.renderBackground(bgColor);
-  graph.renderTitle(nameMode[name]?.[0] ?? name, titleColor);
-  graph.renderValue("NoData", numColor);
+  graph.renderValue("NoData", numColor, 0.6);
+  graph.renderTitle(title, titleColor);
   graph.renderTo(cardDiv);
 }
