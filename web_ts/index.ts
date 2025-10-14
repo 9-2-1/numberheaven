@@ -151,47 +151,29 @@ function renderDataCard(
   const graph = new SVGGraph();
   graph.renderStart(cardDiv);
   // 计算x轴时间范围
-  const xMin = tnow - 7 * 24 * 60 * 60;
-  const xMax = tnow;
-  graph.xMin = xMin;
-  graph.xMax = xMax;
+  graph.xMin = tnow - 7 * 24 * 60 * 60;
+  graph.xMax = tnow;
   const lasttime = number.history[number.history.length - 1].time;
   // 历史记录
   const historyList = Array.from(number.history);
-  // 延长最后一个点，使其更容易查看。
-  historyList.push({ time: xMax + (xMax - xMin) * 0.1, value: number.value });
   const points = historyList.map((history) => ({
     x: history.time,
     y: history.value,
   }));
   // 计算y轴范围
-  const yRange = nameMode[name]?.[4] ?? 20;
-  const yMinMin = nameMode[name]?.[3] ?? null;
-  graph.autoYRange(points);
-  if (graph.yMax - graph.yMin < yRange) {
-    const avg = (graph.yMin + graph.yMax) / 2;
-    graph.yMin = avg - yRange / 2;
-    graph.yMax = avg + yRange / 2;
-  }
-  if (yMinMin !== null && graph.yMin < yMinMin) {
-    graph.yMax += yMinMin - graph.yMin;
-    graph.yMin = yMinMin;
-  }
+  graph.autoYRangeLine(points, true);
+  graph.fixYRange()
 
-  const xPad = (graph.xMax - graph.xMin) * 0.1;
-  graph.xMax += xPad;
-  graph.xMin -= xPad;
+  const xAxisYv = graph.yMin;
+  const yAxisXv = tnow;
+  graph.zoomRange(1.2,1.2)
 
-  const yPad = (graph.yMax - graph.yMin) * 0.1;
-  graph.yMax += yPad;
-  graph.yMin -= yPad;
+  // 延长最后一个点，使其更容易查看。
+  points.push({ x: graph.xMax, y: number.value });
 
   const themeColor = nameMode[name]?.[2] ?? rgb(179, 91, 51);
   const { titleColor, numColor, labelColor, lineColor, bgColor } =
     colorSeries(themeColor);
-
-  const xAxisYv = graph.yMin + yPad;
-  const yAxisXv = graph.xMax - xPad; // tnow
 
   const tzoffset = new Date().getTimezoneOffset() * 60;
   const yInterval = graph.findYInterval(1, 20);
