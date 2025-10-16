@@ -62,6 +62,14 @@ class SVGGraph {
       }
       return;
     }
+    if (points[0].x >= this.xMin) {
+      // 所有点都在xMin的右边
+      if (reset) {
+        this.yMin = points[0].y;
+        this.yMax = points[0].y;
+      }
+      return;
+    }
     if (i != 0) {
       const vY =
         points[i - 1].y +
@@ -258,6 +266,9 @@ class SVGGraph {
     style: "solid" | "dashed",
     width: number,
   ) {
+    if (points.length < 2) {
+      return;
+    }
     let posToPixel = (pos: { x: number; y: number }) => ({
       x: (this.xPixel * (pos.x - this.xMin)) / (this.xMax - this.xMin),
       y: (this.yPixel * (this.yMax - pos.y)) / (this.yMax - this.yMin),
@@ -271,6 +282,9 @@ class SVGGraph {
       linePixel[linePixel.length - 2].x > this.xPixel
     ) {
       linePixel.pop();
+    }
+    if (linePixel.length < 2) {
+      return;
     }
     const linePath = linePixel.map((p) => `${p.x} ${p.y}`).join("L");
     this.svg.push(
