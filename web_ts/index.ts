@@ -9,6 +9,7 @@ const layout = [
     "bilibili",
     "xiaohongshu",
     "douyin",
+    "volc",
   ],
 ];
 
@@ -50,16 +51,11 @@ const nameMode: Record<
   bilibili: ["b站稍后再看", "视频", rgb(0, 174, 236), 0, 20],
   xiaohongshu: ["小红书稍后再看", "笔记", rgb(255, 36, 66), 0, 20],
   douyin: ["抖音稍后再看", "视频", rgb(22, 24, 35), 0, 20],
+  volc: ["volc", "", rgb(0, 106, 255), 0, 20],
 };
 
 let numbers: {
-  [name: string]: {
-    value: number;
-    history: {
-      time: number;
-      value: number;
-    }[];
-  };
+  [name: string]: { value: number; history: { time: number; value: number }[] };
 } = {};
 
 const numberMap: Record<string, HTMLDivElement> = {};
@@ -162,11 +158,11 @@ function renderDataCard(
   }));
   // 计算y轴范围
   graph.autoYRangeLine(points, true);
-  graph.fixYRange()
+  graph.fixYRange();
 
   const xAxisYv = graph.yMin;
   const yAxisXv = tnow;
-  graph.zoomRange(1.2,1.2)
+  graph.zoomRange(1.2, 1.2);
 
   // 延长最后一个点，使其更容易查看。
   points.push({ x: graph.xMax, y: number.value });
