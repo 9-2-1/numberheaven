@@ -10,6 +10,7 @@ const layout = [
     "xiaohongshu",
     "douyin",
     "volc",
+    "ari",
   ],
 ];
 

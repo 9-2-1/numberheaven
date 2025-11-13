@@ -47,10 +47,7 @@ async def get_numbers(req: web.Request) -> web.Response:
             name: {
                 "value": value,
                 "history": [
-                    {
-                        "time": time,
-                        "value": hvalue,
-                    }
+                    {"time": time, "value": hvalue}
                     for time, hvalue in database.execute(
                         "select time, value from history where name = ? order by time",
                         (name,),
