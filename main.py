@@ -43,18 +43,24 @@ async def get_numbers(req: web.Request) -> web.Response:
         last_update = last
     if cache_timestamp != last_update:
         cache_timestamp = last_update
+        # -7d
+        begin_time = time.time() - 7 * 24 * 60 * 60
         ret = {
             name: {
                 "value": value,
                 "history": [
                     {"time": time, "value": hvalue}
                     for time, hvalue in database.execute(
-                        "select time, value from history where name = ? order by time",
-                        (name,),
+                        "SELECT time, value FROM history WHERE name = ?1 AND time >= ?2"
+                        " UNION ALL"
+                        # off-by-one
+                        " SELECT MAX(time), value FROM history WHERE name = ?1 AND time < ?2"
+                        " ORDER BY time DESC",
+                        (name, begin_time),
                     )
                 ],
             }
-            for name, value in database.execute("select name, value from numbers")
+            for name, value in database.execute("SELECT name, value FROM numbers")
         }
         ret_json = json.dumps(ret, ensure_ascii=False, separators=(",", ":"))
 
@@ -93,26 +99,24 @@ if __name__ == "__main__":
         appid = f.read().splitlines()
     database = sqlite3.connect(args.db)
     database.execute(
-        "create table if not exists lastupdate ("  #
-        " uniquev integer primary key,"
-        " lastupdate real)"
+        "CREATE TABLE IF NOT EXISTS lastupdate ("  #
+        " uniquev INTEGER,"
+        " lastupdate REAL)"
     )
     database.execute(
-        "create table if not exists history ("  #
-        " name text,"
-        " time real,"
-        " value real)"
+        "CREATE UNIQUE INDEX IF NOT EXISTS lastupdate_uniquev ON lastupdate (uniquev)"
     )
     database.execute(
-        "create index if not exists history_nt on history ("  #
-        " name,"
-        " time)"
+        "CREATE TABLE IF NOT EXISTS history ("  #
+        " name TEXT,"
+        " time REAL,"
+        " value REAL)"
     )
     database.execute(
-        "create table if not exists numbers ("
-        " name primary key,"
-        " value real)"
-        " without rowid"
+        "CREATE INDEX IF NOT EXISTS history_name_time ON history (name, time)"
+    )
+    database.execute(
+        "CREATE TABLE IF NOT EXISTS numbers (" " name TEXT," " value REAL)"
     )
     app = web.Application()
     app.router.add_post("/post_update", post_update)
