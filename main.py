@@ -51,11 +51,11 @@ async def get_numbers(req: web.Request) -> web.Response:
                 "history": [
                     {"time": time, "value": hvalue}
                     for time, hvalue in database.execute(
-                        "SELECT time, value FROM history WHERE name = ?1 AND time >= ?2"
-                        " UNION ALL"
                         # off-by-one
-                        " SELECT MAX(time), value FROM history WHERE name = ?1 AND time < ?2"
-                        " ORDER BY time DESC",
+                        "SELECT MAX(time), value FROM history WHERE name = ?1 AND time < ?2"
+                        " UNION ALL"
+                        " SELECT time, value FROM history WHERE name = ?1 AND time >= ?2"
+                        " ORDER BY time ASC",
                         (name, begin_time),
                     )
                 ],
