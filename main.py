@@ -26,9 +26,9 @@ async def post_update(req: web.Request) -> web.Response:
         name = req.query["name"]
         time = datetime.now().timestamp()
         value = float((await req.content.read()).decode("utf-8"))
-        database.execute("insert or replace into lastupdate values (0, ?)", (time,))
-        database.execute("insert into history values (?, ?, ?)", (name, time, value))
-        database.execute("insert or replace into numbers values (?, ?)", (name, value))
+        database.execute("INSERT OR REPLACE INTO lastupdate VALUES (0, ?)", (time,))
+        database.execute("INSERT INTO history VALUES (?, ?, ?)", (name, time, value))
+        database.execute("INSERT OR REPLACE INTO numbers VALUES (?, ?)", (name, value))
         database.commit()
         return web.Response(text="Updated", status=200)
     except Exception as e:
@@ -39,12 +39,12 @@ async def post_update(req: web.Request) -> web.Response:
 async def get_numbers(req: web.Request) -> web.Response:
     global cache_timestamp, ret_json
     last_update = 0
-    for (last,) in database.execute("select lastupdate from lastupdate"):
+    for (last,) in database.execute("SELECT lastupdate FROM lastupdate"):
         last_update = last
     if cache_timestamp != last_update:
         cache_timestamp = last_update
-        # -7d
-        begin_time = time.time() - 7 * 24 * 60 * 60
+        # -8d
+        begin_time = time.time() - 8 * 24 * 60 * 60
         ret = {
             name: {
                 "value": value,
@@ -100,23 +100,19 @@ if __name__ == "__main__":
     database = sqlite3.connect(args.db)
     database.execute(
         "CREATE TABLE IF NOT EXISTS lastupdate ("  #
-        " uniquev INTEGER,"
-        " lastupdate REAL)"
-    )
-    database.execute(
-        "CREATE UNIQUE INDEX IF NOT EXISTS lastupdate_uniquev ON lastupdate (uniquev)"
+        " uniquev INTEGER PRIMARY KEY,"
+        " lastupdate REAL) WITHOUT ROWID"
     )
     database.execute(
         "CREATE TABLE IF NOT EXISTS history ("  #
         " name TEXT,"
         " time REAL,"
-        " value REAL)"
+        " value REAL,"
+        " PRIMARY KEY (name, time))"
+        " WITHOUT ROWID"
     )
     database.execute(
-        "CREATE INDEX IF NOT EXISTS history_name_time ON history (name, time)"
-    )
-    database.execute(
-        "CREATE TABLE IF NOT EXISTS numbers (" " name TEXT," " value REAL)"
+        "CREATE TABLE IF NOT EXISTS numbers (name TEXT PRIMARY KEY, value REAL) WITHOUT ROWID"
     )
     app = web.Application()
     app.router.add_post("/post_update", post_update)
