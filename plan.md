@@ -2,7 +2,23 @@ NumberHeaven
 
 简单的数据显示
 
-后端：NodeJS + Sqlite 记录不同名称的数字变化 CREATE TABLE number ( name TEXT PRIMARY KEY, -- 名称 color TEXT, -- 主题色，"#RRGGBB"，例如"#66ccff" order TEXT, -- 前端显示顺序 value REAL, -- 当前数值 last REAL -- 最后一次更新 ) WITHOUT ROWID; CREATE TABLE history ( time REAL -- 时间 name TEXT, -- 名称 value REAL, -- 数值 ) WITHOUT ROWID; CREATE INDEX history_time ON history(time)
+后端：NodeJS + Sqlite 记录不同名称的数字变化
+
+```
+CREATE TABLE number (
+  name TEXT PRIMARY KEY, -- 名称
+  color TEXT, -- 主题色，"#RRGGBB"，例如"#66ccff"
+  order TEXT, -- 前端显示顺序
+  value REAL, -- 当前数值
+  last REAL -- 最后一次更新
+) WITHOUT ROWID;
+CREATE TABLE history (
+  time REAL -- 时间
+  name TEXT, -- 名称
+  value REAL, -- 数值
+);
+CREATE INDEX history_time ON history(time)
+```
 
 两个API: get_numbers -- 获得所有数字以及7天内的历史。值得注意的是，除了7天内的点之外需要获取7天前最晚的一个点，这样趋势线左侧连续
 
@@ -10,7 +26,14 @@ post_update(name, value, color?, order?) -- 更新数字
 
 前端：Svelte 显示所有数字，按照 (order, name) 先 order 后 name 排序。建议在后端排好序按照这样的格式，一个或者两个占一整行（根据屏幕宽度）：
 
-↘这是一个Component [名称] [最后更新时间] [ ] | --- [ 数 字（大字）] | --- --- [ ] | --- ---- ↗"---"是七天变化趋势线
+```
+↘这是一个Component
+[名称] [最后更新时间]
+[              ] |      ---
+[ 数 字（大字）] |    ---  ---
+[              ] | ---        ----
+                  ↗"---"是七天变化趋势线
+```
 
 关于变化趋势线(可能需要实现为 子Component)
 
@@ -30,37 +53,63 @@ post_update(name, value, color?, order?) -- 更新数字
 - 使用 TypeScript
 - 是不是有什么方法可以直接同时启动前端和后端？
 - Svelte的 $props 正确用法示例: `const {foo, bar}: {foo: number, bar: string} = $props();`
-- Svelte的 snippet 正确用法示例：``` {#snippet figure(image)} <figure> <img src={image.src} alt={image.caption} width={image.width} height={image.height} /> <figcaption>{image.caption}</figcaption> </figure> {/snippet}
+- Svelte的 snippet 正确用法示例：
 
-{#each images as image} {#if image.href} <a href={image.href}> {@render figure(image)} </a> {:else} {@render figure(image)} {/if} {/each} ```
+```
+{#snippet figure(image)}
+<figure>
+  <img src={image.src} alt={image.caption} width={image.width} height={image.height} />
+  <figcaption>{image.caption}</figcaption>
+</figure>
+{/snippet}
 
-    ```
+{#each images as image}
+  {#if image.href}
+    <a href={image.href}>
+      {@render figure(image)}
+    </a>
+  {:else}
+    {@render figure(image)}
+  {/if}
+{/each}
+```
 
-{#snippet header()} <th>fruit</th> <th>qty</th> <th>price</th> <th>total</th> {/snippet}
+```
+{#snippet header()}
+<th>fruit</th>
+<th>qty</th>
+<th>price</th>
+<th>total</th>
+{/snippet}
 
-{#snippet row(d)} <td>{d.name}</td> <td>{d.qty}</td> <td>{d.price}</td> <td>{d.qty \* d.price}</td> {/snippet}
+{#snippet row(d)}
+<td>{d.name}</td>
+<td>{d.qty}</td>
+<td>{d.price}</td>
+<td>{d.qty \* d.price}
+</td>
+{/snippet}
 
 <Table data={fruits} {header} {row} />
-    ```
+```
 
-    ```
-
+```
 <!-- this is semantically the same as the above -->
 <Table data={fruits}>
-	{#snippet header()}
-		<th>fruit</th>
-		<th>qty</th>
-		<th>price</th>
-		<th>total</th>
-	{/snippet}
-
-    {#snippet row(d)}
-    	<td>{d.name}</td>
-    	<td>{d.qty}</td>
-    	<td>{d.price}</td>
-    	<td>{d.qty * d.price}</td>
+    {#snippet header()}
+        <th>fruit</th>
+        <th>qty</th>
+        <th>price</th>
+        <th>total</th>
     {/snippet}
 
+    {#snippet row(d)}
+        <td>{d.name}</td>
+        <td>{d.qty}</td>
+        <td>{d.price}</td>
+        <td>{d.qty * d.price}</td>
+    {/snippet}
 </Table>
-    ```
-  - 有 Svelte MCP。应该充分使用此MCP确保代码质量。
+```
+
+- 有 Svelte MCP。应该充分使用此MCP确保代码质量。
