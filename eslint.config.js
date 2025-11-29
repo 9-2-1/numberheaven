@@ -33,6 +33,7 @@ export default defineConfig(
         extraFileExtensions: ['.svelte'],
         parser: ts.parser,
         svelteConfig,
+        tsconfigRootDir: __dirname,
       },
     },
   }
