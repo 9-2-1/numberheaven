@@ -4,59 +4,56 @@
   import NumberCard from './NumberCard.svelte';
 
   let numbers: NumberWithHistory[] = $state([]);
-  let loading = $state(true);
+  let initialLoading = $state(true);
+  let isRefreshing = $state(false);
   let error: string | null = $state(null);
   let timestamp = $state(Date.now());
 
   async function fetchNumbers() {
+    if (isRefreshing) {
+      return;
+    }
+    isRefreshing = true;
     try {
-      loading = true;
       const response = await fetch('api/get_numbers');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       numbers = await response.json();
       timestamp = Date.now();
+      error = null;
     } catch (err) {
       error = err instanceof Error ? err.message : 'An unknown error occurred';
       console.error('Error fetching numbers:', err);
     } finally {
-      loading = false;
+      isRefreshing = false;
+      initialLoading = false;
     }
   }
 
   onMount(() => {
     fetchNumbers();
+    // 10秒定时刷新
+    const interval = setInterval(fetchNumbers, 10000);
+
+    // 组件卸载时清除定时器
+    return () => clearInterval(interval);
   });
-
-  // 更新数字
-  // This function is exported for potential use by child components
-  export async function updateNumber(name: string, value: number) {
-    try {
-      const response = await fetch('/api/post_update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, value }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      // 重新获取数据
-      await fetchNumbers();
-    } catch (err) {
-      error = err instanceof Error ? err.message : 'An unknown error occurred';
-      console.error('Error updating number:', err);
-    }
-  }
 </script>
 
 <div class="number-list">
-  {#if loading}
+  <!-- 右上角状态指示器 -->
+  <div class="status-indicators">
+    {#if isRefreshing}
+      <div class="loading-indicator">⟳</div>
+    {/if}
+    {#if error}
+      <div class="error-indicator">✕</div>
+    {/if}
+  </div>
+
+  {#if initialLoading}
     <div class="loading">Loading...</div>
-  {:else if error}
-    <div class="error">Error: {error}</div>
   {:else if numbers.length === 0}
     <div class="empty">No numbers available</div>
   {:else}
@@ -71,18 +68,56 @@
 <style>
   .number-list {
     padding: 16px;
+    position: relative;
+  }
+
+  .status-indicators {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .loading-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(0, 123, 255, 0.1);
+    color: #007bff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    animation: spin 1s linear infinite;
+  }
+
+  .error-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(255, 0, 0, 0.1);
+    color: #dc3545;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .loading,
-  .error,
   .empty {
     text-align: center;
     padding: 20px;
     font-size: 18px;
-  }
-
-  .error {
-    color: red;
   }
 
   .numbers-grid {
