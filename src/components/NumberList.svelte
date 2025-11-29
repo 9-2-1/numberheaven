@@ -11,7 +11,7 @@
   async function fetchNumbers() {
     try {
       loading = true;
-      const response = await fetch('/api/get_numbers');
+      const response = await fetch('api/get_numbers');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

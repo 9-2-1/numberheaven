@@ -3,14 +3,15 @@ import cors from 'cors';
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
+import morgan from 'morgan';
 import type { NumberRecord, NumberWithHistory, HistoryRecord } from './types';
 
 const app = express();
-const port = 3000;
+const port = 32451;
 
+app.use(morgan('combined'));
+app.use(express.text({ type: () => true }));
 app.use(cors());
-app.use(express.json());
-app.use(express.text({ type: '*/*' })); // 支持纯文本请求体
 
 // Serve static files from the frontend dist directory
 app.use(express.static(path.join(__dirname, '../../dist')));
@@ -106,20 +107,13 @@ app.post('/api/post_update', (req, res) => {
   const color = req.query.color as string | undefined;
   const order = req.query.order as string | undefined;
 
-  // 从body获取value（支持纯文本和JSON）
+  // 从body获取value
   let value: number;
   if (typeof req.body === 'string') {
-    // 处理纯文本请求体
     const trimmedBody = req.body.trim();
     value = parseFloat(trimmedBody);
     if (isNaN(value)) {
       return res.status(400).json({ error: 'Invalid numeric value in request body' });
-    }
-  } else if (typeof req.body === 'object' && req.body !== null) {
-    // 处理JSON请求体
-    value = req.body.value;
-    if (value === undefined) {
-      return res.status(400).json({ error: 'Value is required in request body' });
     }
   } else {
     return res.status(400).json({ error: 'Invalid request body format' });

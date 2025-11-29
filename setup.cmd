@@ -1,6 +1,5 @@
-call npm i
+call pnpm i
 cd server
-call npm i
 call tsc
 cd ..
 call npm run build
