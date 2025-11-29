@@ -2,7 +2,7 @@ NumberHeaven
 
 简单的数据显示
 
-后端：NodeJS + Sqlite 记录不同名称的数字变化
+后端：NodeJS + better-sqlite3 记录不同名称的数字变化
 
 ```
 CREATE TABLE number (

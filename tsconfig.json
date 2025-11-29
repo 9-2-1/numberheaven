@@ -11,5 +11,5 @@
     "noImplicitThis": true
   },
   "src": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "exclude": ["**/dist/**", "**/node_modules/**"]
 }
