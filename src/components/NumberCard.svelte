@@ -9,7 +9,7 @@
   // 将主题色转换为 oklch 并生成不同部分的颜色
   const baseColor = chroma(number.color || '#66ccff');
   const oklch = baseColor.oklch();
-  const [_, __, h] = oklch;
+  const h = oklch[2];
 
   // 生成不同部分的颜色
   const backgroundColor = chroma.oklch(0.95, 0.05, h).hex();
