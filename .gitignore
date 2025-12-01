@@ -28,3 +28,5 @@ dist-ssr
 *.db-*
 
 APPID.txt
+
+.st*
