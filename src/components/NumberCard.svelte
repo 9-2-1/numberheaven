@@ -7,14 +7,14 @@
   let { number, timestamp }: { number: NumberWithHistory; timestamp: number } = $props();
 
   // 将主题色转换为 oklch 并生成不同部分的颜色
-  const baseColor = chroma(number.color || '#66ccff');
-  const oklch = baseColor.oklch();
-  const h = oklch[2];
+  const baseColor = $derived(chroma(number.color || '#66ccff'));
+  const oklch = $derived(baseColor.oklch());
+  const h = $derived(oklch[2]);
 
   // 生成不同部分的颜色
-  const backgroundColor = chroma.oklch(0.95, 0.05, h).hex();
-  const textColor = chroma.oklch(0.6, 0.2, h).hex();
-  const chartLineColor = chroma.oklch(0.5, 0.3, h).hex();
+  const backgroundColor = $derived(chroma.oklch(0.95, 0.05, h).hex());
+  const textColor = $derived(chroma.oklch(0.6, 0.2, h).hex());
+  const chartLineColor = $derived(chroma.oklch(0.5, 0.3, h).hex());
 
   function formatTime(timestamp: number): string {
     const date = new Date(timestamp);
