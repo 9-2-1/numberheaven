@@ -17,7 +17,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, '../../dist')));
 
 // 初始化数据库
-const db = new Database('./data.db');
+const db = new Database('../../data/numbering/data.db');
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS number (

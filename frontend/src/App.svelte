@@ -3,7 +3,7 @@
 </script>
 
 <main>
-  <h1>Number Heaven</h1>
+  <h1>Numbering</h1>
   <NumberList />
 </main>
 

@@ -1,0 +1,5 @@
+#!/bin/bash
+exec 2>&1
+cd $(dirname "$0")
+pnpm i --prod
+node backend

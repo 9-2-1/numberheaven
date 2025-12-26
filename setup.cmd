@@ -1,3 +1,3 @@
 call pnpm i
-call pnpm run build-server
-call pnpm run build
+call pnpm run build-backend
+call pnpm run build-frontend
