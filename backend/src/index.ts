@@ -16,8 +16,12 @@ app.use(cors());
 // Serve static files from the frontend dist directory
 app.use(express.static(path.join(__dirname, '../../dist')));
 
+const prod = process.argv[2] == 'prod';
+
 // 初始化数据库
-const db = new Database('../../data/numbering/data.db');
+const db = new Database(
+  prod ? '../../data/numbering/data.db' : '../../data-test/numbering/data.db'
+);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS number (
